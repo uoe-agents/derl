@@ -8,6 +8,7 @@ from derl.on_policy.algorithm import Algorithm
 from derl.on_policy.common.model import Policy
 from derl.on_policy.common.storage import RolloutStorage
 
+
 class A2C(Algorithm):
     def __init__(
         self,

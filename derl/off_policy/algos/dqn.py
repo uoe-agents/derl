@@ -12,6 +12,7 @@ from derl.off_policy.common.replay_buffer import NStepReplayBuffer
 from derl.off_policy.common.prioritised_replay_buffer import NStepPrioritisedReplayBuffer
 from derl.off_policy.common.utils import soft_update, hard_update, epsilon_scheduler
 
+
 class DQN(Algorithm):
     def __init__(
         self,

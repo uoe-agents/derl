@@ -1,14 +1,10 @@
 import os
 
 import gym
-import numpy as np
 import torch
-from gym import ObservationWrapper
-from gym.spaces.box import Box
-from gym.wrappers import Monitor, RecordEpisodeStatistics
+from gym.wrappers import Monitor
 
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecEnvWrapper
-from stable_baselines3.common.vec_env.vec_video_recorder import VecVideoRecorder
 from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 
 import bsuite

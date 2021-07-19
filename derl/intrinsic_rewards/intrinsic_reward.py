@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from gym.spaces.utils import flatdim
-import numpy as np
 
 from derl.utils.utils import flatten_dict as flatten
 

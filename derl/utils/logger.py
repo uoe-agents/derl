@@ -1,4 +1,3 @@
-import copy
 from collections import defaultdict
 import glob
 from hashlib import sha256

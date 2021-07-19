@@ -38,6 +38,7 @@ def evaluate(
     envs.training = True
     return all_infos
 
+
 def main(
     envs,
     exploration_agent,

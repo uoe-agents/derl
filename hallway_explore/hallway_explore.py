@@ -4,6 +4,7 @@ import time
 import gym
 import hallway_explore
 
+
 def get_action():
     act = input("Action to select (in [0, 2]):")
     def check_valid(act):
@@ -19,6 +20,7 @@ def get_action():
         act = input("Invalid action. Action to select (in [0, 2]):")
 
     return int(act)
+
 
 def _game_loop(env, human, render):
     """
@@ -45,6 +47,7 @@ def _game_loop(env, human, render):
             env.render()
             if not human:
                 time.sleep(0.5)
+
 
 def main(game_count=1, human=False, render=False):
     env = gym.make("hallwayexp-10-10-40-v0")

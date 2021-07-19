@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 from gym.spaces.utils import flatdim
-from torch._C import DictType
 
 from derl.utils.utils import flatten_dict as flatten
+
 
 class Algorithm(ABC):
     def __init__(

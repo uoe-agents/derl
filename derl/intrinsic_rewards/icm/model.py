@@ -4,6 +4,7 @@ import torch.nn as nn
 from derl.on_policy.common.model import prod
 from derl.utils.utils import build_sequential
 
+
 class ICMNetwork(nn.Module):
     """Intrinsic curiosity module (ICM) network"""
 
