@@ -1,0 +1,20 @@
+# @package _group_
+_target_: intrinsic_rewards.icm.icm.ICM
+
+model:
+  architecture: fc # "fc" or "conv"
+  state_representation:
+    - 64
+    - 64
+    - 16
+  forward_model:
+    - 64
+  inverse_model:
+    - 64
+  device: cpu
+
+lr: 1e-5
+max_grad_norm: 40.
+intrinsic_reward_coef: 0.5
+forward_loss_coef: 10.0
+inverse_loss_coef: 0.1

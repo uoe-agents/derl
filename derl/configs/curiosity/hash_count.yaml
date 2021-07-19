@@ -1,0 +1,13 @@
+# @package _group_
+_target_: intrinsic_rewards.count.hash_count.HashCount
+device: cpu
+intrinsic_reward_coef: 1.0
+decay_factor: 1.0
+key_dim: 16
+bucket_sizes:
+    - 999931
+    - 999953
+    - 999959
+    - 999961
+    - 999979
+    - 999983

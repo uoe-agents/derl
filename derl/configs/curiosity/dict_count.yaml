@@ -1,0 +1,5 @@
+# @package _group_
+_target_: intrinsic_rewards.count.dict_count.DictCount
+device: cpu
+intrinsic_reward_coef: 0.5
+decay_factor: 1.0

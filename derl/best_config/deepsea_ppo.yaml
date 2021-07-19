@@ -1,0 +1,45 @@
+main:
+    "env.norm_obs": false
+    "env.norm_rewards": false
+
+    "+algorithm": ppo
+    "algorithm.n_steps": 10
+    "algorithm.lr": 1e-3
+    "algorithm.model.activation": tanh
+    "algorithm.max_grad_norm": 0.5
+    "algorithm.entropy_coef": 1e-4
+    "algorithm.model.device": cpu
+
+    "train_extrinsic_intrinsic_rewards": true
+
+curiosities:
+    none: null
+
+    dict_count:
+        "+curiosity": dict_count
+        "curiosity.intrinsic_reward_coef": 1.0
+
+    hash_count:
+        "+curiosity": hash_count
+        "curiosity.key_dim": 16
+        "curiosity.intrinsic_reward_coef": 1.0
+
+    icm:
+        "+curiosity": icm
+        "curiosity.lr": 1e-5
+        "curiosity.forward_loss_coef": 5
+        "curiosity.inverse_loss_coef": 1
+        "curiosity.intrinsic_reward_coef": 1.0
+    
+    rnd:
+        "+curiosity": rnd
+        "curiosity.lr": 1e-7
+        "curiosity.intrinsic_reward_coef": 1.0
+
+    ride:
+        "+curiosity": ride
+        "curiosity.lr": 5e-6
+        "curiosity.forward_loss_coef": 10
+        "curiosity.inverse_loss_coef": 1
+        "curiosity.model.count.type": dict
+        "curiosity.intrinsic_reward_coef": 1.0

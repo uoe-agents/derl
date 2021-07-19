@@ -1,0 +1,35 @@
+# @package _global_
+_target_: on_policy.train.main
+
+algorithm:
+  _target_: on_policy.algos.ppo.PPO
+  model:
+    actor:
+      - 64
+      - 64
+    critic:
+      - 64
+      - 64
+    activation: 'relu' # options: 'relu' or 'tanh'
+    device: cpu
+
+  greedy_evaluation: false
+
+  lr: 3e-4
+  max_grad_norm: 0.5
+  num_epochs: 10
+  num_minibatches: 4
+  clip_param: 0.1
+  use_clipped_value_loss: True
+  use_gae: False
+  gae_lambda: 0.95
+  entropy_coef: 0.005
+  kl_coef: 0.0
+  value_loss_coef: 0.5
+  adam_eps: 0.001
+  gamma: 0.99
+  use_proper_time_limits: True
+  n_steps: 10
+
+env:
+  parallel_envs: 4

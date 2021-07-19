@@ -1,0 +1,40 @@
+defaults:
+  - logger: tensorboard
+  - hydra/job_logging: file
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
+
+seed: null
+
+train_extrinsic_intrinsic_rewards: false # extrinsic_reward += intrinsic_reward
+train_intrinsic_extrinsic_rewards: true # intrinsic_reward += extrinsic_reward
+
+env:
+  _target_: utils.envs.make_vec_envs
+  name: ???
+  dummy_vecenv: true
+  norm_rewards: false
+  norm_obs: false
+  parallel_envs: null
+  wrappers:
+    - RecordEpisodeStatistics
+  device: cpu
+
+algorithm:
+  num_env_steps: 100000000
+  log_interval: 2000
+  save_interval: 1000000
+  eval_interval: 1000000
+  episodes_per_eval: 8
+  gamma: 0.99
+  greedy_evaluation: true
+
+exploitation_algorithm: null
+
+curiosity: null

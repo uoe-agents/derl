@@ -1,0 +1,35 @@
+main:
+    "env.norm_rewards": false
+    "env.norm_obs": false
+
+    "+algorithm": a2c
+    "algorithm.n_steps": 5
+    "algorithm.lr": 3e-4
+    "algorithm.max_grad_norm": 0.5
+    "algorithm.entropy_coef": 1e-4
+    "algorithm.model.activation": tanh
+    "algorithm.model.device": cpu
+
+    "train_intrinsic_extrinsic_rewards": true
+
+    "+exploitation_algorithm": a2c
+    "exploitation_algorithm.greedy_evaluation": True
+    "exploitation_algorithm.n_steps": 5
+    "exploitation_algorithm.importance_sampling": retrace
+    "exploitation_algorithm.lr": 3e-4
+    "exploitation_algorithm.max_grad_norm": 0.5
+    "exploitation_algorithm.entropy_coef": 1e-5
+    "exploitation_algorithm.model.activation": tanh
+    "exploitation_algorithm.model.device": cpu
+
+curiosities:
+    dict_count:
+        "+curiosity": dict_count
+        "curiosity.intrinsic_reward_coef": 1.0
+
+    icm:
+        "+curiosity": icm
+        "curiosity.lr": 1e-6
+        "curiosity.forward_loss_coef": 5
+        "curiosity.inverse_loss_coef": 1
+        "curiosity.intrinsic_reward_coef": 1.0

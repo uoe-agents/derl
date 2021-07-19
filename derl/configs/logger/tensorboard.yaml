@@ -1,0 +1,3 @@
+# @package _group_
+_target_: utils.logger.TensorboardLogger
+tensorboard_dir: results/tensorboard/

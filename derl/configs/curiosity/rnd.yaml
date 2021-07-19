@@ -1,0 +1,15 @@
+# @package _group_
+_target_: intrinsic_rewards.rnd.rnd.RND
+
+model:
+  architecture: fc # "fc" or "conv"
+  state_representation:
+    - 64
+    - 64
+    - 16
+  device: cpu
+
+lr: 1e-5
+max_grad_norm: 40.
+intrinsic_reward_coef: 0.5
+rnd_loss_coef: 0.1
