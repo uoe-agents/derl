@@ -127,6 +127,8 @@ class HallwayExplore(gym.Env):
             # start at left side
             self.agent_location = 0
 
+        self.goal_reached = False
+        self.goal_stayed = 0
         self.current_step = 0
         return self.__get_obs()
 
