@@ -9,7 +9,7 @@ setup(
         'click',
         'hydra-core==1.0.5',
         'omegaconf',
-        'pyyaml',
+        'pyyaml==5.4.1',
         'torch',
         'tensorboard',
         'stable-baselines3',
