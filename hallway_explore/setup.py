@@ -5,6 +5,6 @@ setup(
     version="1.0.13",
     description="Hallway Exploration Environment",
     author="Lukas Schäfer",
-    url="https://github.com/LukasSchaefer/hallway-explore",
+    url="https://github.com/uoe-agents/derl/tree/main/hallway_explore",
     install_requires=["numpy", "gym"],
 )

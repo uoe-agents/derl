@@ -5,6 +5,7 @@ setup(
     packages=find_packages(),
     version='0.0.1',
     install_requires=[
+        'setuptools==49.6.0',
         'gym',
         'click',
         'hydra-core==1.0.5',
