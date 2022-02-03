@@ -81,6 +81,16 @@ class Algorithm(ABC):
         """
         raise NotImplementedError
 
+    def evaluate_policy_distribution(self, obs, masks):
+        """
+        Compute log-probs of policy across all actions
+        :param obs: batch of observation to evaluate policy in
+        :param masks: batch of mask for policy input
+        :return: pytorch tensor of shape (N, |A|) with N = batchsize and |A| = number of actions
+            including log-probs for each state of batch and each action
+        """
+        return self.model.evaluate_policy_distribution(obs, masks)
+
     @abstractmethod
     def after_update(self):
         """

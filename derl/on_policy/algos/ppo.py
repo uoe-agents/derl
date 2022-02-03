@@ -7,6 +7,7 @@ import torch.optim as optim
 from derl.on_policy.algorithm import Algorithm
 from derl.on_policy.common.model import Policy
 from derl.on_policy.common.storage import RolloutStorage
+from derl.utils.utils import kl_divergence
 
 
 class PPO(Algorithm):
@@ -15,7 +16,7 @@ class PPO(Algorithm):
         observation_space,
         action_space,
         parallel_envs,
-		num_env_steps,
+        num_env_steps,
         cfg,
         **kwargs,
     ):
@@ -100,11 +101,14 @@ class PPO(Algorithm):
             next_value, self.use_gae, self.gamma, self.gae_lambda, self.use_proper_time_limits,
         )
 
-    def update(self, behavioural_model=None):
+    def update(self, beh_update, other_policy=None):
         """
         Compute and execute update
 
-        :param behavioural_model: model of behaviour policy (if exploitation policy is trained)
+        :param beh_update: boolean whether update for behaviour policy (True) or exploitation
+            policy (False)
+        :param other_policy: other algorithm - behaviour policy (if exploitation policy is trained) or
+            exploitation policy (if exploration policy is trained)
         :return: dictionary of losses
         """
         advantages = self.storage.returns[:-1] - self.storage.value_preds[:-1]
@@ -114,6 +118,7 @@ class PPO(Algorithm):
         value_loss_epoch = 0
         action_loss_epoch = 0
         dist_entropy_epoch = 0
+        dist_kl_epoch = 0
 
         for e in range(self.num_epochs):
             data_generator = self.storage.feed_forward_generator(
@@ -147,9 +152,26 @@ class PPO(Algorithm):
                 else:
                     value_loss = 0.5 * (return_batch - values).pow(2).mean()
 
+                if self.kl_coef != 0.0 and other_policy is not None:
+                    # compute KL divergence of policies | KL(pi_e || pi_beta)
+                    other_log_policy = other_policy.evaluate_policy_distribution(
+                        obs_batch, masks_batch,
+                    )
+                    other_log_policy = other_log_policy.detach()
+                    log_policy = self.evaluate_policy_distribution(
+                        obs_batch, masks_batch
+                    )
+                    kl = kl_divergence(log_policy, other_log_policy).mean()
+                else:
+                    kl = torch.tensor(0.0).to(self.model_device)
+
                 self.optimiser.zero_grad()
-                (value_loss * self.value_loss_coef + action_loss -
-                 dist_entropy * self.entropy_coef).backward()
+                (
+                    action_loss
+                    + value_loss * self.value_loss_coef
+                    - dist_entropy * self.entropy_coef
+                    + kl * self.kl_coef
+                ).backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(),
                                          self.max_grad_norm)
                 self.optimiser.step()
@@ -157,6 +179,7 @@ class PPO(Algorithm):
                 value_loss_epoch += value_loss.item()
                 action_loss_epoch += action_loss.item()
                 dist_entropy_epoch += dist_entropy.item()
+                dist_kl_epoch += kl.item()
         
 
         num_updates = self.num_epochs * self.num_minibatches
@@ -164,12 +187,18 @@ class PPO(Algorithm):
         value_loss_epoch /= num_updates
         action_loss_epoch /= num_updates
         dist_entropy_epoch /= num_updates
+        dist_kl_epoch /= num_updates
 
-        return {
+        loss_dict = {
             "policy_loss": action_loss_epoch,
             "value_loss": value_loss_epoch,
             "dist_entropy": dist_entropy_epoch,
         }
+
+        if dist_kl_epoch != 0.0:
+            loss_dict["kl_divergence"] = dist_kl_epoch
+
+        return loss_dict
 
     def after_update(self):
         """

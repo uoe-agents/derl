@@ -2,6 +2,7 @@ import os
 import time
 from collections import deque
 
+import hydra
 import torch
 
 from derl.utils.envs import make_vec_envs
@@ -9,15 +10,16 @@ from derl.utils.utils import _squash_info
 
 
 def evaluate(
-	envs,
+    envs,
     agent,
     episodes_per_eval,
+    parallel_envs,
     device,
 ):
     envs.training = False
 
     n_obs = envs.reset().float()
-    n_masks = torch.zeros(episodes_per_eval, 1).float().to(device)
+    n_masks = torch.zeros(parallel_envs, 1).float().to(device)
 
     all_infos = []
 
@@ -51,6 +53,7 @@ def main(
 
     curiosity = curiosity_instance
     logger = logger_instance
+    eval_envs = hydra.utils.call(cfg.env, gamma=cfg.algorithm.gamma, seed=cfg.seed)
     obs = envs.reset()
     exploration_agent.init_training(obs)
 
@@ -146,11 +149,14 @@ def main(
         if exploitation_agent is not None:
             exploitation_agent.compute_returns()
 
-        loss_dict = exploration_agent.update()
+        if exploitation_agent is not None:
+            loss_dict = exploration_agent.update(beh_update=True, other_policy=exploitation_agent)
+        else:
+            loss_dict = exploration_agent.update(beh_update=True)
 
         if exploitation_agent is not None:
             if n_updates % cfg.exploitation_algorithm.update_freq == 0:
-                exp_loss_dict = exploitation_agent.update(exploration_agent.model)
+                exp_loss_dict = exploitation_agent.update(beh_update=False, other_policy=exploration_agent)
                 for k, v in exp_loss_dict.items():
                     loss_dict[f"exploitation_{k}"] = v
 
@@ -181,9 +187,10 @@ def main(
             completed_episodes > last_eval_ep and completed_episodes % cfg.algorithm.eval_interval == 0 or n_updates == num_updates
         ):
             all_infos = evaluate(
-				envs,
+		eval_envs,
                 exploitation_agent if exploitation_agent is not None else exploration_agent,
                 cfg.algorithm.episodes_per_eval,
+                cfg.env.parallel_envs,
                 cfg.env.device,
             )
             eval_info = _squash_info(all_infos)

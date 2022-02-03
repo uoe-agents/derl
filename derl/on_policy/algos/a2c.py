@@ -7,6 +7,7 @@ import torch.optim as optim
 from derl.on_policy.algorithm import Algorithm
 from derl.on_policy.common.model import Policy
 from derl.on_policy.common.storage import RolloutStorage
+from derl.utils.utils import kl_divergence
 
 
 class A2C(Algorithm):
@@ -101,11 +102,14 @@ class A2C(Algorithm):
             next_value, self.use_gae, self.gamma, self.gae_lambda, self.use_proper_time_limits,
         )
 
-    def update(self, behavioural_model=None):
+    def update(self, beh_update, other_policy=None):
         """
         Compute and execute update
 
-        :param behavioural_model: model of behaviour policy (if exploitation policy is trained)
+        :param beh_update: boolean whether update for behaviour policy (True) or exploitation
+            policy (False)
+        :param other_policy: other algorithm - behaviour policy (if exploitation policy is trained) or
+            exploitation policy (if exploration policy is trained)
         :return: dictionary of losses
         """
         obs_shape = self.storage.obs.size()[2:]
@@ -124,8 +128,8 @@ class A2C(Algorithm):
         advantages = self.storage.returns[:-1] - values
 
         # for exploitation policy compute importance sampling weights
-        if behavioural_model is not None:
-            _, behavioural_action_log_probs, _ = behavioural_model.evaluate_actions(
+        if not beh_update:
+            _, behavioural_action_log_probs, _ = other_policy.model.evaluate_actions(
                 self.storage.obs[:-1].view(-1, *obs_shape),
                 self.storage.masks[:-1].view(-1, 1),
                 self.storage.actions.view(-1, action_shape),
@@ -147,27 +151,31 @@ class A2C(Algorithm):
 
             value_loss = (importance_sampling * advantages.pow(2)).mean()
             policy_loss = -(importance_sampling * advantages.detach() * action_log_probs).mean()
-
-            # compute KL divergence of policies | KL(pi_e || pi_beta)
-            _, behaviour_log_policy = behavioural_model.evaluate_policy_distribution(
-                self.storage.obs[:-1].view(-1, *obs_shape),
-                self.storage.masks[:-1].view(-1, 1),
-            )
-            _, log_policy = self.model.evaluate_policy_distribution(
-                self.storage.obs[:-1].view(-1, *obs_shape),
-                self.storage.masks[:-1].view(-1, 1),
-            )
-            kl = (log_policy.exp() * (log_policy - behaviour_log_policy)).sum(-1)
         else:
             value_loss = advantages.pow(2).mean()
             policy_loss = -(advantages.detach() * action_log_probs).mean()
             importance_sampling = None
-            kl = None
+
+        if self.kl_coef != 0.0 and other_policy is not None:
+            # compute KL divergence of policies | KL(pi_e || pi_beta)
+            other_log_policy = other_policy.evaluate_policy_distribution(
+                self.storage.obs[:-1].view(-1, *obs_shape),
+                self.storage.masks[:-1].view(-1, 1),
+            )
+            other_log_policy = other_log_policy.detach()
+            log_policy = self.evaluate_policy_distribution(
+                self.storage.obs[:-1].view(-1, *obs_shape),
+                self.storage.masks[:-1].view(-1, 1),
+            )
+            kl = kl_divergence(log_policy, other_log_policy).mean()
+        else:
+            kl = 0.0
 
         loss = (
             policy_loss
             + self.value_loss_coef * value_loss
             - self.entropy_coef * dist_entropy
+            + self.kl_coef * kl
         )
 
         self.optimiser.zero_grad()
@@ -175,20 +183,18 @@ class A2C(Algorithm):
         nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimiser.step()
 
+        loss_dict = {
+            "policy_loss": policy_loss.item(),
+            "value_loss": value_loss.item(),
+            "dist_entropy": dist_entropy.item(),
+        }
+
         if importance_sampling is not None:
-            loss_dict = {
-                "policy_loss": policy_loss.item(),
-                "value_loss": value_loss.item(),
-                "dist_entropy": dist_entropy.item(),
-                "importance_sampling_weights": importance_sampling.mean().item(),
-                "kl_divergence": kl.mean().item(),
-            }
-        else:
-            loss_dict = {
-                "policy_loss": policy_loss.item(),
-                "value_loss": value_loss.item(),
-                "dist_entropy": dist_entropy.item(),
-            }
+            loss_dict["importance_sampling_weights"] = importance_sampling.mean().item()
+
+        if kl != 0.0:
+            loss_dict["kl_divergence"] = kl.item()
+
         return loss_dict
 
     def after_update(self):

@@ -57,10 +57,10 @@ class Policy(nn.Module):
         policy_log_probs = []
         for a in range(self.num_outputs):
             actions = torch.ones(inputs.shape[0],) * a
-            action_log_probs = dist.log_probs(actions).detach()
+            action_log_probs = dist.log_probs(actions)
             policy_log_probs.append(action_log_probs)
         policy_log_probs = torch.stack(policy_log_probs, dim=1).squeeze()
-        return value, policy_log_probs
+        return policy_log_probs
 
 class NNBase(nn.Module):
     def __init__(self, input_size, actor_hiddens, critic_hiddens):

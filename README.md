@@ -1,4 +1,4 @@
-# Decoupling Exploration and Exploitation in Reinforcement Learning
+# Decoupled Reinforcement Learning to Stabilise Intrinsically-Motivated Exploration
 
 This repository is the official implementation of **Decoupled Reinforcement Learning (DeRL)**
 
@@ -10,21 +10,19 @@ $ cd derl
 $ pip install -e .
 ```
 
-We recommend to install dependencies in a virtual environment.
-
-
+We recommend to install dependencies in a virtual environment (tested with Python 3.7.12).
 
 In order to run experiments in the Hallway environment, install using the following code:
 
 ```console
-$ cd derl/hallway_explore
+$ cd hallway_explore
 $ pip install -e .
 ```
 
 ## Training
 To train baselines or DeRL algorithms with the identified best hyperparameters, navigate to the derl directory
 ```console
-$ cd derl/derl
+$ cd derl
 ```
 
 and execute the script:
@@ -35,7 +33,7 @@ $ python run_best.py run --seeds=<NUM_SEEDS> <ENV> <ALG-CONFIG> <INTRINSIC_REWAR
 
 Valid environments are
 - `deepsea_<N>` for N in {10, 14, 20, 24, 30}
-- `hallway_<Nl-Nr>` for Nl in {10, 20, 30} and Nr in {N_l, 0}
+- `hallway_<Nl>-<Nr>` for Nl in {10, 20, 30} and Nr in {N_l, 0}
 
 Valid algorithm configurations can be found in `best_config`:
 - `deepsea_a2c`
@@ -60,6 +58,14 @@ Valid intrinsic rewards for baseline configurations (A2C and PPO) are
 For Decoupled RL algorithms (DeA2C, DePPO, DeDQN), valid intrinsic rewards are
 - `dict_count`
 - `icm`
+
+### Divergence Constraint Experiments
+For experiments with divergence constraints, set the KL constraint coefficients $$\alpha_\beta$$ (corresponding to `algorithm.kl_coef`) and $$\alpha_e$$ (corresponding to `exploitation_algorithm.kl_coef`). For the respective DeA2C Dict-Count experiments presented in Section 7, run the following commands:
+
+```console
+$ python3 run_best.py run --seeds=3 deepsea_10 deepsea_dea2c_kl dict_count start
+$ python3 run_best.py run --seeds=3 hallway_20-20 hallway_dea2c_kl dict_count start
+```
 
 ## Codebase Structure
 
@@ -96,10 +102,10 @@ Further utilities such as environment wrappers/ setup, loggers and more can be f
 
 ## Citation
 ```
-@inproceedings{schaefer2021decoupling,
-	title={Decoupling Exploration and Exploitation in Reinforcement Learning},
-	author={Lukas Schäfer and Filippos Christianos and Josiah Hanna and Stefano V. Albrecht},
-	booktitle={ICML Workshop on Unsupervised Reinforcement Learning (URL)},
-	year={2021}
+@inproceedings{schaefer2022derl,
+	title={Decoupled Reinforcement Learning to Stabilise Intrinsically-Motivated Exploration},
+	author={Lukas Schäfer and Filippos Christianos and Josiah P. Hanna and Stefano V. Albrecht},
+	booktitle={International Conference on Autonomous Agents and Multiagent Systems},
+	year={2022}
 }
 ```
